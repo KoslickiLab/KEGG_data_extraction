@@ -41,3 +41,7 @@ Examples:
 
 ## Data
 You can find the data (only for Archaea' 'Bacteria' 'Fungi' and 'Viruses') that I have already downloaded previously from our GPU server. The data locates `/data/shared_data/KEGG_data`.
+
+## FASTA formatted gene sequences
+The script [convert_table_to_fasta.py](python_scripts/convert_table_to_fasta.py) will convert the `*.txt` records of gene sequences into FASTA formatted versions of the amino acid and nucleotide sequences.
+These are stored at `/data/shared_data/KEGG_data/kegg_genes.faa` and `/data/shared_data/KEGG_data/kegg_genes.fna`
