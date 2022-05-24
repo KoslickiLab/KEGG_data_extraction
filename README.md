@@ -3,6 +3,15 @@
 ## Description
 This repository contains the python scripts used to download sequence data of organisms (e.g., Eukaryotes, Prokaryotes) or viruses from KEGG via its [APIs](https://www.kegg.jp/kegg/rest/keggapi.html). There is a shell script `main.sh` to summarize the steps to downalod KEGG sequence data.
 
+## Requirements
+The `requirements.txt` file contains the necessary packages required to run the code in this repo.
+You can install it via:
+```commandline
+conda create -y --name KEGG_env python=3.8
+conda install -y --name KEGG_env -c conda-forge -c bioconda --file requirements.txt
+conda activate KEGG_env
+```
+
 ## Implementation
 You can simply `git clone` this repo to your local computer, and then run:
 ```shell
