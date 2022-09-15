@@ -57,21 +57,42 @@ if __name__ == "__main__":
 
     logger = get_logger()
 
-    ## download KEGG KO brite hierarchy and process hierarchy
-    logger.info(f"Download KEGG KO brite hierarchy")
-    brite_id = 'br:ko00001'
-    ko_hierarchy_dict = dict()
-    link = f"{KEGG_api_link}/get/{brite_id}/json"
+    ## get brite table
+    link = f"{KEGG_api_link}/list/brite"
     res = requests.get(link)
     if res.status_code == 200:
-        temp_dict = organize_hierarchy(res.json(), regex='^K\d{5} ')
-        for key in temp_dict:
-            if key in ko_hierarchy_dict:
-                ko_hierarchy_dict[key] += [temp_dict[key]]
-            else:
-                ko_hierarchy_dict[key] = [temp_dict[key]]
+        brite_table = pd.DataFrame([x.split('\t') for x in res.text.split('\n') if x.split('\t')[0]])
+        brite_table.columns = ['kegg_brite_id','desc']
     else:
         logger.error(f"Fail to download KEGG brite information from {link}")
+        exit()
+
+    ## download KEGG KO associated hierarchy and process hierarchy
+    logger.info(f"Download KEGG KO associated hierarchy")
+    ko_hierarchy_dict = dict()
+    for brite_id, desc in brite_table.to_numpy():
+        logger.info(f"Processing brite id {brite_id}")
+        check_link = f"{KEGG_api_link}/get/{brite_id}"
+        res = requests.get(check_link)
+        if res.status_code == 200:
+            m = re.search('K\d{5}', res.text)
+        else:
+            logger.error(f"Fail to download KEGG brite information from {check_link}")
+            continue
+        if m is None:
+            logger.warning(f"Brite ID {brite_id} doesn't contain KO ids and thus skip it.")
+            continue
+        link = f"{KEGG_api_link}/get/{brite_id}/json"
+        json_res = requests.get(link)
+        if json_res.status_code == 200:
+            temp_dict = organize_hierarchy(json_res.json(), regex='^K\d{5} ')
+            for key in temp_dict:
+                if key in ko_hierarchy_dict:
+                    ko_hierarchy_dict[key] += [temp_dict[key]]
+                else:
+                    ko_hierarchy_dict[key] = [temp_dict[key]]
+        else:
+            logger.error(f"Fail to download KEGG brite information from {link}")
 
     ## convert hierarchy to edge list
     ko_edge_list = []
