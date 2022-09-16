@@ -99,12 +99,17 @@ if __name__ == "__main__":
 
     ## convert hierarchy to edge list
     ko_edge_list = []
+    brite_root_id_list = []
     for ko_id, hierarchy_list in ko_hierarchy_dict.items():
         for item in hierarchy_list:
             temp_list = [id_mapping.get(x,x) for x in item.split('|')[:-1]]
+            brite_root_id_list += [temp_list[0]]
             temp_list += [ko_id]
             ko_edge_list += [(temp_list[index-1], temp_list[index]) for index in range(1, len(temp_list))]
                 
+    ## add meta-root to all Brite categories
+    ko_edge_list += [('root',brite_root_id) for brite_root_id in list(set(brite_root_id_list))]
+
     kegg_ko_edge_df = pd.DataFrame(ko_edge_list)
     kegg_ko_edge_df.columns = ['parent','child']
     kegg_ko_edge_df = kegg_ko_edge_df.drop_duplicates().reset_index(drop=True)
