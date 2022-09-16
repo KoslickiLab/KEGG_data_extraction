@@ -94,11 +94,14 @@ if __name__ == "__main__":
         else:
             logger.error(f"Fail to download KEGG brite information from {link}")
 
+    ## set up identifier mapping
+    id_mapping = {f"{re.sub('^[a-z]*:[a-z]*','',x[0])} {x[1]}":x[0].split(':')[1] for x in brite_table.to_numpy()}
+
     ## convert hierarchy to edge list
     ko_edge_list = []
     for ko_id, hierarchy_list in ko_hierarchy_dict.items():
         for item in hierarchy_list:
-            temp_list = item.split('|')[:-1]
+            temp_list = [id_mapping.get(x,x) for x in item.split('|')[:-1]]
             temp_list += [ko_id]
             ko_edge_list += [(temp_list[index-1], temp_list[index]) for index in range(1, len(temp_list))]
                 
@@ -106,3 +109,6 @@ if __name__ == "__main__":
     kegg_ko_edge_df.columns = ['parent','child']
     kegg_ko_edge_df = kegg_ko_edge_df.drop_duplicates().reset_index(drop=True)
     kegg_ko_edge_df.to_csv(os.path.join(args.outdir, 'kegg_ko_edge_df.txt'), sep='\t', index=None)
+
+
+
