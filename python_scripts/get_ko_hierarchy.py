@@ -51,8 +51,14 @@ def organize_hierarchy(hiearchy_json, regex='^\w?\w?\d{5} ', prefix='', stop_lev
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--outdir", type=str, help="The output dir")
+    parser.add_argument("--brite", type=str, help="BRITE ID for which to extract the subtree (eg. ko00001). Otherwise, create the full DAG")
     args = parser.parse_args()
-
+    brite = args.brite
+    if not brite.startswith("br:"):
+        brite = "br:" + brite
+    parse_all = False
+    if not brite:
+        parse_all = True
     KEGG_api_link = 'http://rest.kegg.jp'
 
     logger = get_logger()
@@ -71,6 +77,9 @@ if __name__ == "__main__":
     logger.info(f"Download KEGG KO associated hierarchy")
     ko_hierarchy_dict = dict()
     for brite_id, desc in brite_table.to_numpy():
+        # only process if we want to parse all of them, or if the brite_id matches what was given on the input
+        if not parse_all and brite_id != brite:
+            continue
         logger.info(f"Processing brite id {brite_id}")
         check_link = f"{KEGG_api_link}/get/{brite_id}"
         res = requests.get(check_link)
@@ -113,7 +122,10 @@ if __name__ == "__main__":
     kegg_ko_edge_df = pd.DataFrame(ko_edge_list)
     kegg_ko_edge_df.columns = ['parent','child']
     kegg_ko_edge_df = kegg_ko_edge_df.drop_duplicates().reset_index(drop=True)
-    kegg_ko_edge_df.to_csv(os.path.join(args.outdir, 'kegg_ko_edge_df.txt'), sep='\t', index=None)
+    if parse_all:
+        kegg_ko_edge_df.to_csv(os.path.join(args.outdir, 'kegg_ko_edge_df.txt'), sep='\t', index=None)
+    else:
+        kegg_ko_edge_df.to_csv(os.path.join(args.outdir, f"kegg_ko_edge_df_{brite}.txt"), sep='\t', index=None)
 
 
 
