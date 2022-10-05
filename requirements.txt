@@ -5,3 +5,4 @@ pandas
 biopython
 pytaxonkit
 bs4
+requests
