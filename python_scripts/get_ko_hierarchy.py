@@ -37,6 +37,7 @@ def organize_hierarchy(hiearchy_json, regex='^\w?\w?\d{5} ', prefix='', stop_lev
                     for elem in hiearchy_json['children']:
                         _iterate_multidimensional(res, elem, res_list)
         else:
+            # FIXME: self is not defined
             self.logger.error(f"{hiearchy_json} is not dictionary")
             raise
 
@@ -57,9 +58,10 @@ if __name__ == "__main__":
     brite = args.brite
     if not brite:
         parse_all = True
+    else:
+        parse_all = False
     if brite and not brite.startswith("br:"):
         brite = "br:" + brite
-    parse_all = False
     KEGG_api_link = 'http://rest.kegg.jp'
 
     logger = get_logger()
