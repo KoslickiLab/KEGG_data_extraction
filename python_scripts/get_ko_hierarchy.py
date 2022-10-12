@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import sys
 import argparse
@@ -51,14 +52,14 @@ def organize_hierarchy(hiearchy_json, regex='^\w?\w?\d{5} ', prefix='', stop_lev
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--outdir", type=str, help="The output dir")
-    parser.add_argument("--brite", type=str, help="BRITE ID for which to extract the subtree (eg. ko00001). Otherwise, create the full DAG")
+    parser.add_argument("--brite", type=str, help="BRITE ID for which to extract the subtree (eg. ko00001). Otherwise, create the full DAG", default=None)
     args = parser.parse_args()
     brite = args.brite
-    if not brite.startswith("br:"):
-        brite = "br:" + brite
-    parse_all = False
     if not brite:
         parse_all = True
+    if brite and not brite.startswith("br:"):
+        brite = "br:" + brite
+    parse_all = False
     KEGG_api_link = 'http://rest.kegg.jp'
 
     logger = get_logger()

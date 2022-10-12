@@ -6,3 +6,5 @@ biopython
 pytaxonkit
 bs4
 requests
+networkx
+pytest
