@@ -14,6 +14,7 @@ import re
 from glob import glob
 import json
 
+
 def get_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -22,6 +23,7 @@ def get_logger():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     return logger
+
 
 def organize_hierarchy(hiearchy_json, regex='^\w?\w?\d{5} ', prefix='', stop_level=None):
 
@@ -50,12 +52,14 @@ def organize_hierarchy(hiearchy_json, regex='^\w?\w?\d{5} ', prefix='', stop_lev
         res_dict = {prefix+string.split('|')[-1].split(' ')[0].split('\t')[0]:'|'.join(string.split('|')[1:(stop_level+1)]) for string in res_list}
         return res_dict
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outdir", type=str, help="The output dir")
+    parser.add_argument("--outdir", type=str, help="The output directory")
     parser.add_argument("--brite", type=str, help="BRITE ID for which to extract the subtree (eg. ko00001). Otherwise, create the full DAG", default=None)
     args = parser.parse_args()
     brite = args.brite
+    out_dir = args.outdir
     if not brite:
         parse_all = True
     else:
@@ -66,7 +70,7 @@ if __name__ == "__main__":
 
     logger = get_logger()
 
-    ## get brite table
+    # get brite table
     link = f"{KEGG_api_link}/list/brite"
     res = requests.get(link)
     if res.status_code == 200:
@@ -76,7 +80,7 @@ if __name__ == "__main__":
         logger.error(f"Fail to download KEGG brite information from {link}")
         exit()
 
-    ## download KEGG KO associated hierarchy and process hierarchy
+    # download KEGG KO associated hierarchy and process hierarchy
     logger.info(f"Download KEGG KO associated hierarchy")
     ko_hierarchy_dict = dict()
     for brite_id, desc in brite_table.to_numpy():
@@ -106,10 +110,10 @@ if __name__ == "__main__":
         else:
             logger.error(f"Fail to download KEGG brite information from {link}")
 
-    ## set up identifier mapping
+    # set up identifier mapping
     id_mapping = {f"{re.sub('^[a-z]*:[a-z]*','',x[0])} {x[1]}":x[0].split(':')[1] for x in brite_table.to_numpy()}
 
-    ## convert hierarchy to edge list
+    # convert hierarchy to edge list
     ko_edge_list = []
     brite_root_id_list = []
     for ko_id, hierarchy_list in ko_hierarchy_dict.items():
@@ -119,16 +123,16 @@ if __name__ == "__main__":
             temp_list += [ko_id]
             ko_edge_list += [(temp_list[index-1], temp_list[index]) for index in range(1, len(temp_list))]
                 
-    ## add meta-root to all Brite categories
-    ko_edge_list += [('root',brite_root_id) for brite_root_id in list(set(brite_root_id_list))]
+    # add meta-root to all Brite categories
+    ko_edge_list += [('root', brite_root_id) for brite_root_id in list(set(brite_root_id_list))]
 
     kegg_ko_edge_df = pd.DataFrame(ko_edge_list)
     kegg_ko_edge_df.columns = ['parent','child']
     kegg_ko_edge_df = kegg_ko_edge_df.drop_duplicates().reset_index(drop=True)
     if parse_all:
-        kegg_ko_edge_df.to_csv(os.path.join(args.outdir, 'kegg_ko_edge_df.txt'), sep='\t', index=None)
+        kegg_ko_edge_df.to_csv(os.path.join(out_dir, 'kegg_ko_edge_df.txt'), sep='\t', index=None)
     else:
-        kegg_ko_edge_df.to_csv(os.path.join(args.outdir, f"kegg_ko_edge_df_{brite}.txt"), sep='\t', index=None)
+        kegg_ko_edge_df.to_csv(os.path.join(out_dir, f"kegg_ko_edge_df_{brite}.txt"), sep='\t', index=None)
 
 
 

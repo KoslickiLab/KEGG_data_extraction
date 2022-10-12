@@ -8,5 +8,22 @@ def test_brite_subtree():
     assert res.returncode == 0
     edge_list_file = "test_data/kegg_ko_edge_df_br:ko00001.txt"
     # import as a networkx directed graph and check if it's a tree
-    G = nx.read_edgelist(edge_list_file, delimiter='\t', nodetype=str, create_using=nx.DiGraph)
+    with open(edge_list_file, 'r') as fid:
+        next(fid, '')
+        G = nx.read_edgelist(fid, delimiter='\t', nodetype=str, create_using=nx.DiGraph)
+    if not nx.is_tree(G):
+        print("Not a tree. Examples include:")
+        itr = 0
+        for node in G.nodes():
+            ancestors = list(G.predecessors(node))
+            if len(ancestors) > 1:
+                print(f"{node}: {ancestors}")
+                itr += 1
+            if itr > 3:
+                break
+        print("Orphaned nodes are:")
+        for node in G.nodes():
+            if len(list(G.neighbors(node))) == 0:
+                print(node)
+
     assert nx.is_tree(G)
